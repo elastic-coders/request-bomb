@@ -73,3 +73,42 @@ def multi_async_requests(concurrency, num_req, method, url,
         for proc_result in processes_results:
             responses.extend(proc_result)
         return responses
+
+
+def _print_response(response):
+    print()
+    print('STATUS CODE: {}'.format(response[0]))
+    print('BODY:')
+    print(response[1])
+
+
+if __name__ ==  '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url')
+    parser.add_argument('num_requests', type=int)
+    parser.add_argument('--concurrency', type=int, default=1)
+    parser.add_argument('--method', default='GET')
+    parser.add_argument('--headers', nargs='*')
+    parser.add_argument('--data')
+    parser.add_argument('--return_response', type=bool, nargs='?',
+                        const=True, default=False)
+    args = parser.parse_args()
+    req_kwargs = {}
+    if args.headers:
+        headers = {k.rstrip(): v.lstrip() for k, v in
+                   [header.split(':') for header in args.headers]}
+        req_kwargs['headers'] = headers
+    if args.data:
+        req_kwargs['data'] = args.data
+
+    start = time.time()
+    responses = multi_async_requests(
+        args.concurrency, args.num_requests, args.method, args.url,
+        return_response=args.return_response, **req_kwargs)
+
+    print('Done {} calls in {} seconds'.format(
+        args.concurrency * args.num_requests, time.time() - start))
+    if args.return_response:
+        for resp in responses:
+            _print_response(resp)
