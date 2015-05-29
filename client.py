@@ -14,13 +14,13 @@ def _do_async_request(method, url, return_response, **req_kwargs):
         try:
             response = yield from aiohttp.request(
                 method, url, **req_kwargs)
-        except aiohttp.errors.ClientResponseError as exc:
+        except aiohttp.errors.ClientResponseError:
             i += 1
         else:
             if return_response:
                 return (response.status, (yield from response.read()))
             return
-    raise exc
+    raise aiohttp.errors.ClientResponseError
 
 
 @asyncio.coroutine
